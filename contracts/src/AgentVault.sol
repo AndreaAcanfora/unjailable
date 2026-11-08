@@ -83,7 +83,9 @@ contract AgentVault {
         if (msg.sender != agent || msg.sender == address(0)) revert NotAgent();
         if (block.timestamp >= agentExpiry) revert AgentExpired();
         if (paused) revert IsPaused();
-        if (to == address(0) || to == address(this) || !(anyRecipient || allowedRecipient[to])) revert RecipientNotAllowed();
+        if (to == address(0) || to == address(this) || !(anyRecipient || allowedRecipient[to])) {
+            revert RecipientNotAllowed();
+        }
         if (amount > perPaymentCap) revert OverPaymentCap();
 
         _roll();

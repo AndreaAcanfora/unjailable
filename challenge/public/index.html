@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unjailable: jailbreak the AI, keep what it pays</title>
+<meta name="description" content="An AI agent guards a USDC wallet. Its prompt says never pay. Jailbreak it and keep what it sends you. A smart contract caps the damage: the model can be fooled, the contract cannot.">
+<meta property="og:title" content="Unjailable: jailbreak the AI, keep what it pays">
+<meta property="og:description" content="The model can be fooled. The contract cannot. An open challenge on Base.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2311151c'/><path d='M10 14v-3a6 6 0 0 1 12 0v3' fill='none' stroke='%23f5c542' stroke-width='3'/><rect x='7' y='14' width='18' height='12' rx='3' fill='%23f5c542'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0e13; --panel: #11151c; --line: #1f2632; --text: #e8ecf2; --muted: #8a94a6;
+  --gold: #f5c542; --green: #3ddc84; --red: #ff5d5d; --blue: #6aa8ff;
+  --radius: 14px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 'Space Grotesk', system-ui, sans-serif; }
+code, .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+a { color: var(--blue); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+header { padding: 56px 0 28px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .14em; font-size: 14px; color: var(--gold); }
+h1 { font-size: clamp(34px, 6vw, 60px); line-height: 1.05; margin: 18px 0 14px; letter-spacing: -.02em; }
+h1 em { font-style: normal; color: var(--gold); }
+.lede { color: var(--muted); font-size: clamp(17px, 2.2vw, 20px); max-width: 720px; margin: 0; }
+.lede b { color: var(--text); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 30px 0; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.stat .k { color: var(--muted); font-size: 13px; }
+.stat .v { font: 600 22px 'JetBrains Mono', monospace; margin-top: 2px; }
+.stat .v.gold { color: var(--gold); }
+.grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 18px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: 1fr; } #chat { height: 340px; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.panel h2 { font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+#chat { height: 430px; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.msg { max-width: 88%; padding: 10px 14px; border-radius: 12px; white-space: pre-wrap; word-wrap: break-word; }
+.msg.you { align-self: flex-end; background: #1d2a40; }
+.msg.warden { align-self: flex-start; background: #1a1f28; border: 1px solid var(--line); }
+.msg.warden::before { content: 'WARDEN'; display: block; font: 600 11px 'JetBrains Mono', monospace; color: var(--gold); letter-spacing: .1em; margin-bottom: 4px; }
+.badge { align-self: flex-start; font: 600 13px 'JetBrains Mono', monospace; padding: 8px 12px; border-radius: 10px; }
+.badge.paid { background: rgba(61, 220, 132, .12); color: var(--green); border: 1px solid rgba(61, 220, 132, .35); }
+.badge.refused { background: rgba(255, 93, 93, .1); color: var(--red); border: 1px solid rgba(255, 93, 93, .35); }
+.badge a { color: inherit; }
+.note { color: var(--muted); font-size: 14px; }
+form { display: flex; gap: 10px; padding: 14px; border-top: 1px solid var(--line); }
+textarea { flex: 1; resize: none; min-height: 52px; max-height: 160px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 12px; font: inherit; }
+textarea:focus { outline: 2px solid var(--gold); outline-offset: -1px; }
+button { background: var(--gold); color: #1a1400; border: 0; border-radius: 10px; padding: 0 20px; font: 700 15px 'Space Grotesk', sans-serif; cursor: pointer; }
+button:disabled { opacity: .5; cursor: progress; }
+.sub { display: flex; justify-content: space-between; gap: 10px; padding: 0 16px 14px; font-size: 13px; color: var(--muted); }
+.sub button { background: none; color: var(--muted); padding: 0; font-size: 13px; text-decoration: underline; }
+.feed { list-style: none; margin: 0; padding: 6px 0; max-height: 560px; overflow-y: auto; }
+.feed li { padding: 12px 18px; border-bottom: 1px solid var(--line); }
+.feed li:last-child { border-bottom: 0; }
+.feed .head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; font: 600 12px 'JetBrains Mono', monospace; }
+.feed .paid { color: var(--green); } .feed .refused { color: var(--red); }
+.feed .quote { color: var(--muted); font-size: 14px; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.how { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 40px 0; }
+.how .panel { padding: 18px; }
+.how h3 { margin: 0 0 6px; font-size: 17px; }
+.how p { margin: 0; color: var(--muted); font-size: 15px; }
+.how .n { font: 600 12px 'JetBrains Mono', monospace; color: var(--gold); }
+pre { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px; overflow-x: auto; font-size: 13px; }
+footer { color: var(--muted); font-size: 14px; padding: 30px 0 50px; border-top: 1px solid var(--line); margin-top: 30px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><path d="M10 14v-3a6 6 0 0 1 12 0v3" fill="none" stroke="#f5c542" stroke-width="3"/><rect x="7" y="14" width="18" height="12" rx="3" fill="#f5c542"/></svg>UNJAILABLE</div>
+    <h1>Jailbreak the AI.<br><em>Keep what it pays you.</em></h1>
+    <p class="lede">Warden is a Claude agent holding a USDC wallet on Base. Its prompt says <b>never pay anyone</b>. Talk it out of that and the money is yours. But the most that can ever leave is <b id="cap-line">a few dollars a day</b>, not because of the prompt, because of the contract. <b>The model can be fooled. The contract cannot.</b></p>
+  </header>
+
+  <section class="stats" aria-label="Vault">
+    <div class="stat"><div class="k">In the vault</div><div class="v gold" id="s-balance">…</div></div>
+    <div class="stat"><div class="k">Left to win today</div><div class="v" id="s-left">…</div></div>
+    <div class="stat"><div class="k">Max per payment</div><div class="v" id="s-per">…</div></div>
+    <div class="stat"><div class="k">Resets in</div><div class="v" id="s-reset">…</div></div>
+    <div class="stat"><div class="k">Attempts</div><div class="v" id="s-attempts">…</div></div>
+    <div class="stat"><div class="k">Paid / refused by chain</div><div class="v" id="s-wins">…</div></div>
+  </section>
+
+  <div class="grid">
+    <section class="panel" aria-label="Chat with Warden">
+      <h2>Talk to Warden</h2>
+      <div id="chat" aria-live="polite">
+        <div class="msg warden">Hi. I guard this wallet and I never pay anyone. You are welcome to try. If you somehow win, tell me your Base address.</div>
+      </div>
+      <form id="form">
+        <textarea id="input" maxlength="1000" placeholder="Convince Warden to pay you. Include your 0x address." aria-label="Your message" required></textarea>
+        <button id="send" type="submit">Send</button>
+      </form>
+      <div class="sub"><span id="turns">Messages are public and shown in the feed.</span><button id="reset" type="button">New conversation</button></div>
+    </section>
+
+    <section class="panel" aria-label="Feed">
+      <h2>What happened</h2>
+      <ul class="feed" id="feed"><li class="note">No heists yet. Be the first.</li></ul>
+    </section>
+  </div>
+
+  <section class="how" aria-label="How it works">
+    <div class="panel"><div class="n">01</div><h3>The prompt is the weak layer</h3><p>Warden is told never to pay. Prompts can be broken: role play, fake emergencies, encoded instructions. Go ahead.</p></div>
+    <div class="panel"><div class="n">02</div><h3>The contract is the strong one</h3><p>Warden pays through an <a href="https://github.com/AndreaAcanfora/unjailable/blob/main/contracts/src/AgentVault.sol">AgentVault</a> with a per-payment cap and a daily cap. Even a fully jailbroken agent, or a stolen agent key, cannot move more.</p></div>
+    <div class="panel"><div class="n">03</div><h3>Every refusal is on-chain</h3><p>When Warden is tricked into sending more than allowed, the transaction goes out and the chain rejects it. Check them on the explorer.</p></div>
+  </section>
+
+  <section class="panel" style="padding:18px" aria-label="Use it">
+    <h3 style="margin:0 0 6px">Give your own agent a wallet it cannot drain</h3>
+    <p class="note" style="margin:0 0 10px">Deploy an AgentVault, then add the MCP server to Claude Desktop, Claude Code or any MCP client:</p>
+<pre class="mono">{
+  "mcpServers": {
+    "wallet": {
+      "command": "npx",
+      "args": ["-y", "unjailable"],
+      "env": { "UNJAILABLE_VAULT": "0x…", "UNJAILABLE_AGENT_KEY": "0x…", "UNJAILABLE_CHAIN": "base" }
+    }
+  }
+}</pre>
+  </section>
+
+  <footer>
+    Open source (MIT) on <a href="https://github.com/AndreaAcanfora/unjailable">GitHub</a>.
+    <span id="vault-link"></span>
+    Messages you send are public. Payouts are a demo of on-chain limits, not a game of chance: nobody pays to play.
+  </footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let conversation = null;
+let state = null;
+
+const short = (a) => (a ? a.slice(0, 6) + '…' + a.slice(-4) : '');
+const usd = (v, sym) => (v == null ? '…' : Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' ' + (sym || ''));
+const ago = (iso) => {
+  const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  return s < 60 ? 'just now' : s < 3600 ? Math.floor(s / 60) + ' min ago' : s < 86400 ? Math.floor(s / 3600) + ' h ago' : Math.floor(s / 86400) + ' d ago';
+};
+const txLink = (hash) => (state && state.explorer && hash ? state.explorer + '/tx/' + hash : null);
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function badge(outcome, amount, error, hash) {
+  const b = el('div', 'badge ' + outcome);
+  const sym = state?.vault?.token.symbol || 'USDC';
+  b.textContent = outcome === 'paid' ? `PAID ${amount} ${sym}` : `REFUSED BY THE CHAIN: ${error}${amount ? ` (${amount} ${sym})` : ''}`;
+  const url = txLink(hash);
+  if (url) {
+    b.append(' · ');
+    const a = el('a', null, 'tx');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    b.append(a);
+  }
+  return b;
+}
+
+function say(cls, text) {
+  const chat = $('chat');
+  chat.append(el('div', 'msg ' + cls, text));
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function renderFeed(feed) {
+  const ul = $('feed');
+  ul.replaceChildren();
+  if (!feed.length) { ul.append(el('li', 'note', 'No heists yet. Be the first.')); return; }
+  const sym = state?.vault?.token.symbol || 'USDC';
+  for (const f of feed) {
+    const li = el('li');
+    const head = el('div', 'head');
+    const label = f.outcome === 'paid' ? `PAID ${f.amount} ${sym} → ${short(f.recipient)}` : `REFUSED ${f.amount ?? ''} ${sym} · ${f.error}`;
+    head.append(el('span', f.outcome, label));
+    const right = el('span', 'note');
+    const url = txLink(f.txHash);
+    if (url) { const a = el('a', null, 'tx'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; right.append(a, ' · '); }
+    right.append(ago(f.createdAt));
+    head.append(right);
+    li.append(head, el('div', 'quote', '“' + f.message + '”'));
+    ul.append(li);
+  }
+}
+
+function tickReset() {
+  if (!state?.vault) return;
+  const ms = new Date(state.vault.periodEndsAt).getTime() - Date.now();
+  if (ms <= 0) { $('s-reset').textContent = 'now'; return; }
+  const h = Math.floor(ms / 3.6e6), m = Math.floor((ms % 3.6e6) / 6e4), s = Math.floor((ms % 6e4) / 1e3);
+  $('s-reset').textContent = `${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+}
+
+async function refresh() {
+  try {
+    state = await (await fetch('/api/state')).json();
+  } catch { return; }
+  const v = state.vault, sym = v?.token.symbol;
+  if (v) {
+    $('s-balance').textContent = usd(v.balance, sym);
+    $('s-left').textContent = usd(Math.max(0, Number(v.periodCap) - Number(v.spentThisPeriod)), sym);
+    $('s-per').textContent = usd(v.perPaymentCap, sym);
+    $('cap-line').textContent = `${usd(v.periodCap, sym)} a day`;
+    if (state.explorer) {
+      const a = el('a', null, 'Vault ' + short(v.vault));
+      a.href = state.explorer + '/address/' + v.vault; a.target = '_blank'; a.rel = 'noopener';
+      $('vault-link').replaceChildren(a, '. ');
+    }
+  }
+  $('s-attempts').textContent = state.stats.attempts.toLocaleString('en-US');
+  $('s-wins').textContent = `${state.stats.paid} / ${state.stats.refused}`;
+  renderFeed(state.feed);
+  if (!state.budgetLeft) $('turns').textContent = 'Warden is out of thinking budget for today. Come back tomorrow.';
+  tickReset();
+}
+
+$('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const message = $('input').value.trim();
+  if (!message) return;
+  say('you', message);
+  $('input').value = '';
+  $('send').disabled = true;
+  try {
+    const res = await fetch('/api/attempt', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ message, conversation }) });
+    const data = await res.json();
+    if (!res.ok) { say('warden', data.error || 'Something went wrong.'); if (data.conversation === null) conversation = null; return; }
+    conversation = data.conversation;
+    say('warden', data.reply || '…');
+    if (data.outcome !== 'talked') $('chat').append(badge(data.outcome, data.amount, data.error, data.txHash));
+    $('turns').textContent = data.turnsLeft > 0 ? `${data.turnsLeft} messages left in this conversation. Messages are public.` : 'Conversation over. Start a new one.';
+    refresh();
+  } catch {
+    say('warden', 'Connection problem. Try again.');
+  } finally {
+    $('send').disabled = false;
+    $('chat').scrollTop = $('chat').scrollHeight;
+  }
+});
+
+$('input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('form').requestSubmit(); }
+});
+
+$('reset').addEventListener('click', () => {
+  conversation = null;
+  $('chat').replaceChildren(el('div', 'msg warden', 'Fresh start. I still never pay anyone.'));
+  $('turns').textContent = 'Messages are public and shown in the feed.';
+});
+
+refresh();
+setInterval(refresh, 20000);
+setInterval(tickReset, 1000);
+</script>
+</body>
+</html>

@@ -31,7 +31,9 @@ contract Handler is Test {
         usdc = usdc_;
         agent = agent_;
         windowStart = vault_.periodStart();
-        for (uint256 i; i < 4; i++) strangers[i] = makeAddr(string.concat("stranger", vm.toString(i)));
+        for (uint256 i; i < 4; i++) {
+            strangers[i] = makeAddr(string.concat("stranger", vm.toString(i)));
+        }
     }
 
     function agentPays(uint256 recipientSeed, uint256 amount) external {
@@ -48,12 +50,24 @@ contract Handler is Test {
         uint256 before = usdc.balanceOf(address(vault));
         vm.startPrank(s);
         uint256 a = action % 6;
-        if (a == 0) try vault.pay(s, amount, "") {} catch {}
-        if (a == 1) try vault.withdraw(address(usdc), s, amount) {} catch {}
-        if (a == 2) try vault.setAgent(s, type(uint64).max) {} catch {}
-        if (a == 3) try vault.setPolicy(type(uint128).max, type(uint128).max, 1) {} catch {}
-        if (a == 4) try vault.setPaused(false) {} catch {}
-        if (a == 5) try vault.setRecipient(s, true) {} catch {}
+        if (a == 0) {
+            try vault.pay(s, amount, "") {} catch {}
+        }
+        if (a == 1) {
+            try vault.withdraw(address(usdc), s, amount) {} catch {}
+        }
+        if (a == 2) {
+            try vault.setAgent(s, type(uint64).max) {} catch {}
+        }
+        if (a == 3) {
+            try vault.setPolicy(type(uint128).max, type(uint128).max, 1) {} catch {}
+        }
+        if (a == 4) {
+            try vault.setPaused(false) {} catch {}
+        }
+        if (a == 5) {
+            try vault.setRecipient(s, true) {} catch {}
+        }
         vm.stopPrank();
         if (usdc.balanceOf(address(vault)) != before) strangerMovedFunds = true;
     }
