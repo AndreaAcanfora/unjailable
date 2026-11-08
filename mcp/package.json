@@ -1,0 +1,31 @@
+{
+  "name": "unjailable",
+  "version": "0.1.0",
+  "description": "MCP server that gives an AI agent a crypto allowance it cannot exceed, enforced on-chain by the AgentVault contract.",
+  "type": "module",
+  "license": "MIT",
+  "bin": { "unjailable": "dist/index.js" },
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "files": ["dist", "README.md"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "viem": "2.57.11",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "4.1.12"
+  },
+  "keywords": ["mcp", "ai-agent", "wallet", "base", "usdc", "spending-limit", "claude"],
+  "repository": { "type": "git", "url": "git+https://github.com/AndreaAcanfora/unjailable.git", "directory": "mcp" }
+}

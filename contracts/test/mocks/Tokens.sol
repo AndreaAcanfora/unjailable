@@ -5,6 +5,7 @@ pragma solidity 0.8.28;
 contract MockUSDC {
     mapping(address => uint256) public balanceOf;
     uint8 public constant decimals = 6;
+    string public constant symbol = "USDC";
 
     function mint(address to, uint256 amount) external {
         balanceOf[to] += amount;

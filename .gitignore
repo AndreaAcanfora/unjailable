@@ -4,3 +4,4 @@ contracts/broadcast/*/31337/
 node_modules/
 .env
 *.log
+mcp/dist/
